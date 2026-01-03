@@ -61,6 +61,7 @@ class Galois {
                 i++;
             }
         }
+
         Galois operator+(const Galois &other) const {
             Galois result;
             for (int i = 0; i < M; ++i) {
@@ -80,6 +81,66 @@ class Galois {
                 temp.multiplyByXAndReduce();
             }
             return result;
+        }
+
+        Galois square() const {
+            std::vector<bool> tmp(2 * M, false);
+
+            for (int i = 0; i < M; ++i) {
+                if (bits[i]) {
+                    tmp[2 * i] = true;
+                }
+            }
+            for (int i = 2 * M - 1; i >= M; --i) {
+                if (tmp[i]) {
+                    int shift = i - M;
+
+                    tmp[i] = false;
+                    tmp[shift + 10] = tmp[shift + 10] ^ true;
+                    tmp[shift + 2] = tmp[shift + 2] ^ true;
+                    tmp[shift + 1] = tmp[shift + 1] ^ true;
+                    tmp[shift + 0] = tmp[shift + 0] ^ true;
+                }
+            }
+
+            Galois res;
+            for (int i = 0; i < M; ++i) {
+                res.bits[i] = tmp[i];
+            }
+
+            return res;
+        }
+
+        Galois operator^(int pow) const {
+            if (pow == 0)
+                return Galois::one();
+            if (pow == 1)
+                return *this;
+            if (pow == 2)
+                return this->square();
+
+            Galois res = Galois::one();
+            Galois base = *this;
+            int p = pow;
+            while (p > 0) {
+                if (p & 1)
+                    res = res * base;
+                base = base.square();
+                p >>= 1;
+            }
+            return res;
+        }
+
+        Galois operator^(const Galois &exponent) const {
+            Galois res = Galois::one();
+            Galois base = *this;
+            for (int i = 0; i < M; ++i) {
+                if (exponent.bits[i]) {
+                    res = res * base;
+                }
+                base = base.square();
+            }
+            return res;
         }
 
         void print() const { print("value"); }
@@ -140,6 +201,8 @@ int main() {
                                "77169197530cfec614dcbf69");
     Galois B = Galois::fromHex("56df1366d2e020579e22f67e66b8a4ee397db984f686bfa"
                                "1d0ace4f5727d9cf9b6269d2");
+    Galois C = Galois::fromHex("4bca4fb7e3c9fb60d73c99a671842d3ce3e063c65c44a37"
+                               "61bc5f28e40594f157bea46");
 
     A.Print("A");
     B.Print("B");
@@ -147,7 +210,9 @@ int main() {
     res.Print("A + B");
     res = A * B;
     res.Print("A * B");
-    res = A * A;
+    res = A.square();
     res.Print("A^2");
+    res = A ^ C;
+    res.Print("A^C");
     return 0;
 }
