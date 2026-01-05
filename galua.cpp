@@ -207,6 +207,17 @@ class Galois {
             }
             return res;
         }
+
+        Galois Inverse() const {
+            Galois res = Galois::one();
+            Galois base = *this;
+
+            for (int i = 0; i < M - 1; ++i) {
+                base = base.square();
+                res = res * base;
+            }
+            return res;
+        }
 };
 
 int main() {
@@ -229,6 +240,7 @@ int main() {
     res.Print("A^C");
     res = A.Trace();
     res.Print("Trace(A)");
-
+    res = A.Inverse();
+    res.Print("Inverse(A)");
     return 0;
 }
