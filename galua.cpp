@@ -131,16 +131,20 @@ class Galois {
             return res;
         }
 
-        Galois operator^(const Galois &exponent) const {
-            Galois res = Galois::one();
+        Galois operator^(const std::string &hexExponent) const {
+            Galois result = Galois::one();
             Galois base = *this;
-            for (int i = 0; i < M; ++i) {
-                if (exponent.bits[i]) {
-                    res = res * base;
+
+            for (char c : hexExponent) {
+                int v = hexValue(c);
+                for (int b = 3; b >= 0; --b) {
+                    result = result.square();
+                    if ((v >> b) & 1) {
+                        result = result * base;
+                    }
                 }
-                base = base.square();
             }
-            return res;
+            return result;
         }
 
         void print() const { print("value"); }
@@ -194,6 +198,15 @@ class Galois {
             }
             return res;
         }
+        Galois Trace() {
+            Galois copy = *this;
+            Galois res = *this;
+            for (int i = 1; i < M; i++) {
+                copy = copy.square();
+                res = res + copy;
+            }
+            return res;
+        }
 };
 
 int main() {
@@ -201,8 +214,8 @@ int main() {
                                "77169197530cfec614dcbf69");
     Galois B = Galois::fromHex("56df1366d2e020579e22f67e66b8a4ee397db984f686bfa"
                                "1d0ace4f5727d9cf9b6269d2");
-    Galois C = Galois::fromHex("4bca4fb7e3c9fb60d73c99a671842d3ce3e063c65c44a37"
-                               "61bc5f28e40594f157bea46");
+    std::string C = "4bca4fb7e3c9fb60d73c99a671842d3ce3e063c65c44a37"
+                    "61bc5f28e40594f157bea46";
 
     A.Print("A");
     B.Print("B");
@@ -210,9 +223,12 @@ int main() {
     res.Print("A + B");
     res = A * B;
     res.Print("A * B");
-    res = A.square();
+    res = A ^ 2;
     res.Print("A^2");
     res = A ^ C;
     res.Print("A^C");
+    res = A.Trace();
+    res.Print("Trace(A)");
+
     return 0;
 }
