@@ -1,7 +1,21 @@
 #include <algorithm>
+#include <cstdint>
 #include <iostream>
 #include <string>
 #include <vector>
+#include <x86intrin.h>
+
+inline uint64_t rdtsc() { return __rdtsc(); }
+
+template <typename Func>
+uint64_t measure_cycles(Func f, int iterations = 1000) {
+    uint64_t start = rdtsc();
+    for (int i = 0; i < iterations; ++i) {
+        f();
+    }
+    uint64_t end = rdtsc();
+    return (end - start) / iterations;
+}
 
 #define M 173 // варіант 2, x^173+x^10+x^2+x+1
 
@@ -244,6 +258,7 @@ int main() {
     res = A.Inverse();
     res.Print("Inverse(A)");
 
+    std::cout << "\n=========================================\n\n";
     Galois C = Galois::fromHex("4bca4fb7e3c9fb60d73c99a671842d3ce3e063c65c44a37"
                                "61bc5f28e40594f157bea46");
     res = (A + B) * C;
@@ -257,6 +272,29 @@ int main() {
         res = res * A;
     }
     res.Print("A^(2^M - 1)");
+
+    int N = 1000;
+
+    uint64_t add_cycles =
+        measure_cycles([&]() { volatile Galois r = A + B; }, N);
+
+    uint64_t mul_cycles =
+        measure_cycles([&]() { volatile Galois r = A * B; }, N);
+
+    uint64_t sqr_cycles =
+        measure_cycles([&]() { volatile Galois r = A.square(); }, N);
+
+    uint64_t trace_cycles =
+        measure_cycles([&]() { volatile Galois r = A.Trace(); }, 100);
+    uint64_t inv_cycles =
+        measure_cycles([&]() { volatile Galois r = A.Inverse(); }, 10);
+
+    std::cout << "\nAverage CPU cycles:\n";
+    std::cout << "Addition:   " << add_cycles << "\n";
+    std::cout << "Multiply:   " << mul_cycles << "\n";
+    std::cout << "Square:     " << sqr_cycles << "\n";
+    std::cout << "Trace:      " << trace_cycles << "\n";
+    std::cout << "Inverse:    " << inv_cycles << "\n";
 
     return 0;
 }
