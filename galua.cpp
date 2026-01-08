@@ -51,6 +51,7 @@ class Galois {
             result.bits[0] = true;
             return result;
         }
+
         Galois(std::initializer_list<bool> values)
             : Galois() {
             int i = 0;
@@ -225,8 +226,8 @@ int main() {
                                "77169197530cfec614dcbf69");
     Galois B = Galois::fromHex("56df1366d2e020579e22f67e66b8a4ee397db984f686bfa"
                                "1d0ace4f5727d9cf9b6269d2");
-    std::string C = "4bca4fb7e3c9fb60d73c99a671842d3ce3e063c65c44a37"
-                    "61bc5f28e40594f157bea46";
+    std::string exp = "4bca4fb7e3c9fb60d73c99a671842d3ce3e063c65c44a37"
+                      "61bc5f28e40594f157bea46";
 
     A.Print("A");
     B.Print("B");
@@ -236,11 +237,26 @@ int main() {
     res.Print("A * B");
     res = A ^ 2;
     res.Print("A^2");
-    res = A ^ C;
+    res = A ^ exp;
     res.Print("A^C");
     res = A.Trace();
     res.Print("Trace(A)");
     res = A.Inverse();
     res.Print("Inverse(A)");
+
+    Galois C = Galois::fromHex("4bca4fb7e3c9fb60d73c99a671842d3ce3e063c65c44a37"
+                               "61bc5f28e40594f157bea46");
+    res = (A + B) * C;
+    res.Print("(A + B)*C");
+    res = B * C + C * A;
+    res.Print("B*C + C*A");
+
+    res = A;
+    for (int i = 1; i < M; ++i) { // A^(2^k -1) = (A^(2^(k-1) -1))^2 * A
+        res = res.square();
+        res = res * A;
+    }
+    res.Print("A^(2^M - 1)");
+
     return 0;
 }
